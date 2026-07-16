@@ -40,7 +40,10 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Architecture and dependency boundaries MUST follow the approved clean architecture approach.
+- Unit, integration, and end-to-end tests MUST be defined for each user story and executed in CI before merge.
+- Accessibility, localization, and role-based UX expectations MUST be documented for Fan, Staff, and Admin flows.
+- Critical performance and scalability requirements MUST be captured with measurable targets for stadium-scale load.
 
 ## Project Structure
 

@@ -1,50 +1,35 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# FIFA Stadium Companion Constitution
+<!--
+Sync Impact Report
+- Version change: placeholder → 1.0.0
+- Modified principles: new constitution with four focused principles
+- Added sections: Additional Constraints, Development Workflow
+- Removed sections: none
+- Templates requiring updates: ✅ .specify/templates/plan-template.md, ✅ .specify/templates/spec-template.md, ✅ .specify/templates/tasks-template.md
+- Follow-up TODOs: none
+-->
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code Quality
+All features MUST be implemented with clear module boundaries, established design patterns, and maintainable code practices. Components MUST be small, cohesive, and independently understandable; shared logic MUST be extracted into reusable services or abstractions rather than duplicated. Architectural decisions MUST be documented when they affect multiple domains, and code reviews MUST reject avoidable complexity or violations of the chosen structure.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Testing Standards
+Every user-facing and business-critical change MUST include appropriate automated tests at the unit, integration, and end-to-end levels where applicable. Test coverage MUST support regression prevention, and CI/CD pipelines MUST run those tests automatically before release. New or changed behavior MUST be testable without manual workarounds, and failing tests MUST block merge or deployment.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. User Experience Consistency
+The product MUST deliver a consistent, accessible, and multilingual experience for Fans, Staff, and Admin users. Interfaces MUST meet WCAG-aligned accessibility expectations, support localized content and locale-aware formatting, and preserve a coherent workflow across roles. Role-based experiences MUST share common interaction patterns and error handling so the system remains intuitive under real stadium conditions.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Performance Requirements
+The system MUST remain responsive under stadium-scale load with low-latency interactions for real-time features such as navigation, updates, and operations. Data handling MUST be designed for scalability, caching and efficient querying MUST be prioritized where appropriate, and performance budgets MUST be defined for critical user journeys. Any feature that degrades responsiveness or increases load beyond agreed thresholds MUST be reworked before release.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+## Additional Constraints
+Implementation choices MUST align with the platform's operational realities, including real-time data updates, role-based access controls, and event-driven workflows. Security, privacy, and auditability requirements MUST be considered alongside product features, and any third-party integration MUST be documented with clear failure handling and fallback behavior. Localization and accessibility MUST be treated as first-class requirements, not as late-stage polish.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
-
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+Features MUST be planned, implemented, and validated through the Spec Kit workflow before code is merged. Each change MUST include explicit acceptance criteria, test evidence, and any required performance or UX validation. Pull requests MUST demonstrate compliance with these principles, and unresolved violations MUST be addressed before deployment. The team MUST keep runtime guidance and implementation notes aligned with this constitution as the product evolves.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+This constitution supersedes ad hoc development practices for this project. Amendments require a documented rationale, review from the maintainers, and a version bump that reflects the scope of the change. Any proposal that materially alters architecture, testing expectations, user-experience obligations, or performance requirements MUST include a migration plan and validation evidence. Compliance review is mandatory for significant changes and for release readiness.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12

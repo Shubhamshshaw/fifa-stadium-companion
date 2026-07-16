@@ -93,6 +93,12 @@
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
+### Cross-Cutting Requirements
+
+- Accessibility and localization MUST be addressed for all user-facing workflows.
+- Performance, scalability, and reliability targets MUST be specified for critical operations.
+- Automated testing MUST cover unit, integration, and end-to-end scenarios where applicable.
+
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
