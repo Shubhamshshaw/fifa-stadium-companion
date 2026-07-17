@@ -1,8 +1,8 @@
 export const environment = {
-  production: true,
+  production: false,
   apiUrl: '/api',
   firebaseConfig: {
-    apiKey: '<REDACTED - set via environment>',
+    apiKey: '<REDACTED - set in env variables or deploy config>',
     authDomain: 'fifa-stadium-companion.firebaseapp.com',
     projectId: 'fifa-stadium-companion',
     storageBucket: 'fifa-stadium-companion.appspot.com',

@@ -1,3 +1,6 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Firestore;
 using FifaStadiumCompanion.Api.Application;
 using FifaStadiumCompanion.Api.Endpoints;
 using FifaStadiumCompanion.Api.Infrastructure;
@@ -26,14 +29,29 @@ if (builder.Environment.IsDevelopment())
 }
 
 // Get configuration from environment
-var firebaseProjectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID") ?? "fifa-stadium-companion";
-var geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+var firebaseProjectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")
+    ?? throw new InvalidOperationException("FIREBASE_PROJECT_ID must be configured.");
 
+var geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+    ?? throw new InvalidOperationException("GEMINI_API_KEY must be configured for AI assistance.");
+
+if (FirebaseApp.DefaultInstance == null)
+{
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.GetApplicationDefault(),
+        ProjectId = firebaseProjectId
+    });
+}
+
+var firestoreDb = FirestoreDb.Create(firebaseProjectId);
+
+builder.Services.AddSingleton(firestoreDb);
 builder.Services.AddSingleton<StadiumCatalogService>();
 builder.Services.AddSingleton<VenueService>();
 builder.Services.AddSingleton<MatchService>();
 builder.Services.AddSingleton<DispatchService>();
-builder.Services.AddSingleton(new AiAssistanceService(geminiApiKey ?? ""));
+builder.Services.AddSingleton<AiAssistanceService>(sp => new AiAssistanceService(geminiApiKey));
 builder.Services.AddSingleton<IFirebaseAuthService, FirebaseAuthService>();
 
 // Add HttpClient for external API calls

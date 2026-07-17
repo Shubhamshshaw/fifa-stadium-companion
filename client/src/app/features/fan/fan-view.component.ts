@@ -25,6 +25,10 @@ import { StadiumService } from '../../core/services/stadium.service';
         <div *ngIf="crowdStatus$ | async as c" class="crowd-info">
           <p *ngIf="c"><strong>Crowd:</strong> {{ $any(c).crowdLevel }}% - {{ $any(c).status }}</p>
         </div>
+        <div *ngIf="liveMatch" class="match-info">
+          <p><strong>Live Match:</strong> {{ liveMatch.title }}</p>
+          <p><strong>Status:</strong> {{ liveMatch.stadiumId === selectedStadium.id ? 'In progress at this stadium' : 'Next available' }}</p>
+        </div>
       </div>
       <div *ngIf="selectedStadium" class="card">
         <h3>AI Assistant</h3>
@@ -47,24 +51,29 @@ import { StadiumService } from '../../core/services/stadium.service';
 export class FanViewComponent implements OnInit {
   stadiums$ = this.stadiumService.getStadiums();
   crowdStatus$: any;
+  liveMatch: any;
   selectedStadium: any;
   aiResponse: string | null = null;
   aiForm = this.fb.group({ query: [''], language: ['en'] });
   $any = (x: any) => x;
 
   constructor(private stadiumService: StadiumService, private fb: FormBuilder) {}
+
   ngOnInit() {}
 
   selectStadium(stadium: any) {
     this.selectedStadium = stadium;
     this.crowdStatus$ = this.stadiumService.getCrowdStatus(stadium.id);
+    this.stadiumService.getLiveMatch(stadium.id).subscribe((match) => {
+      this.liveMatch = match;
+    });
   }
 
   onAIQuery() {
     const query = this.aiForm.get('query')?.value || '';
     const language = this.aiForm.get('language')?.value || 'en';
-    if (query) {
-      this.stadiumService.queryAI(query, language).subscribe((res) => {
+    if (query && this.selectedStadium) {
+      this.stadiumService.queryAI(`${query} (current stadium: ${this.selectedStadium.name})`, language).subscribe((res) => {
         this.aiResponse = res.reply;
         this.aiForm.reset({ query: '', language });
       });

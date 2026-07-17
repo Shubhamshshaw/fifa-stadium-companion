@@ -1,17 +1,54 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { initializeApp, FirebaseApp, getApps } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, getIdTokenResult, User } from 'firebase/auth';
+import { environment } from '../../../environments/environment';
+
+export interface AppUser {
+  uid: string;
+  email: string;
+  role: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  constructor(private http: HttpClient) {}
+  private app: FirebaseApp;
+  private auth = getAuth(this.initializeFirebaseApp());
 
-  signIn(email: string, password: string): Observable<{ uid: string; email: string; role: string }> {
-    // Placeholder: In production, use Firebase Auth SDK
-    return of({ uid: 'mock-user', email, role: 'fan' });
+  constructor() {}
+
+  private initializeFirebaseApp(): FirebaseApp {
+    if (getApps().length > 0) {
+      return getApps()[0];
+    }
+
+    return initializeApp(environment.firebaseConfig);
   }
 
-  getCurrentUser(): Observable<{ uid: string; email: string; role: string } | null> {
-    return of({ uid: 'mock-user', email: 'fan@example.com', role: 'fan' });
+  signIn(email: string, password: string): Observable<AppUser> {
+    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+      switchMap(async (credential) => await this.mapUser(credential.user))
+    );
+  }
+
+  getCurrentUser(): Observable<AppUser | null> {
+    return new Observable<AppUser | null>((observer) => {
+      const unsubscribe = onAuthStateChanged(this.auth, async (user) => {
+        observer.next(user ? await this.mapUser(user) : null);
+      });
+      return () => unsubscribe();
+    });
+  }
+
+  private async mapUser(user: User): Promise<AppUser> {
+    const idTokenResult = await getIdTokenResult(user);
+    const role = (idTokenResult.claims['role'] as string) ?? 'fan';
+
+    return {
+      uid: user.uid,
+      email: user.email ?? '',
+      role,
+    };
   }
 }

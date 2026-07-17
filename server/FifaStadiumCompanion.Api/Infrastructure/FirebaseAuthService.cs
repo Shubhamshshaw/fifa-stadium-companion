@@ -1,3 +1,7 @@
+using FirebaseAdmin;
+using FirebaseAdmin.Auth;
+using Google.Apis.Auth.OAuth2;
+
 namespace FifaStadiumCompanion.Api.Infrastructure;
 
 public interface IFirebaseAuthService
@@ -7,74 +11,49 @@ public interface IFirebaseAuthService
 
 public sealed record FirebaseUser(string Uid, string Email, List<string> Claims);
 
-/// <summary>
-/// Firebase Authentication Service
-/// 
-/// Production Implementation:
-/// 1. Install NuGet: FirebaseAdmin
-/// 2. Set FIREBASE_PROJECT_ID environment variable
-/// 3. Provide Firebase service account credentials file
-/// 4. Replace mock implementation with:
-///    - FirebaseApp.GetInstance() initialization
-///    - auth.VerifyIdTokenAsync(idToken)
-///    - User claims extraction from token
-/// </summary>
 public sealed class FirebaseAuthService : IFirebaseAuthService
 {
-    private readonly string? _firebaseProjectId;
-
     public FirebaseAuthService()
     {
-        _firebaseProjectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID");
+        EnsureFirebaseInitialized();
     }
 
-    public Task<FirebaseUser?> ValidateIdTokenAsync(string idToken)
+    private static void EnsureFirebaseInitialized()
     {
-        // Placeholder: In production, use Firebase Admin SDK
-        // This validates that a token was provided
+        if (FirebaseApp.DefaultInstance != null)
+            return;
+
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.GetApplicationDefault()
+        });
+    }
+
+    public async Task<FirebaseUser?> ValidateIdTokenAsync(string idToken)
+    {
         if (string.IsNullOrWhiteSpace(idToken))
-            return Task.FromResult<FirebaseUser?>(null);
+            return null;
 
-        // Mock implementation extracts a basic user
-        // In production:
-        // 1. Call: FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken)
-        // 2. Extract uid, email, custom claims from DecodedToken
-        // 3. Return actual user data from Firestore if needed
+        try
+        {
+            var decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+            var claims = new List<string>();
+            if (decodedToken.Claims.TryGetValue("role", out var role))
+                claims.Add(role?.ToString() ?? "fan");
 
-        return Task.FromResult<FirebaseUser?>(
-            new FirebaseUser(
-                Uid: ExtractUidFromToken(idToken),
-                Email: ExtractEmailFromToken(idToken),
-                Claims: ExtractClaimsFromToken(idToken)
-            )
-        );
-    }
+            var email = decodedToken.Claims.ContainsKey("email")
+                ? decodedToken.Claims["email"]?.ToString() ?? string.Empty
+                : string.Empty;
 
-    /// <summary>
-    /// Mock: Extract UID from token (prod: use Firebase Admin SDK)
-    /// </summary>
-    private static string ExtractUidFromToken(string idToken)
-    {
-        // In production: Extract from Firebase token
-        return $"user-{idToken.GetHashCode()}";
-    }
-
-    /// <summary>
-    /// Mock: Extract email from token (prod: use Firebase Admin SDK)
-    /// </summary>
-    private static string ExtractEmailFromToken(string idToken)
-    {
-        // In production: Extract from Firebase token custom claims
-        return "user@example.com";
-    }
-
-    /// <summary>
-    /// Mock: Extract claims from token (prod: use Firebase Admin SDK)
-    /// </summary>
-    private static List<string> ExtractClaimsFromToken(string idToken)
-    {
-        // In production: Extract custom claims from Firebase token
-        // Common claims: "fan", "staff", "admin"
-        return new List<string> { "fan" };
+            return new FirebaseUser(
+                Uid: decodedToken.Uid,
+                Email: email,
+                Claims: claims
+            );
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

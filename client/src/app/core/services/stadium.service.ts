@@ -1,59 +1,99 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class StadiumService {
-  private apiUrl = 'http://localhost:5134/api';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
   getStadiums(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/stadiums`).pipe(
-      catchError(() => of([
-        { id: 'stadium-01', name: 'MetLife Stadium', city: 'New York', capacity: 82500 },
-        { id: 'stadium-02', name: 'SoFi Stadium', city: 'Los Angeles', capacity: 70240 },
-        { id: 'stadium-03', name: 'AT&T Stadium', city: 'Dallas', capacity: 80000 }
-      ]))
+      catchError((error) => {
+        console.error('Failed to load stadiums', error);
+        return throwError(() => error);
+      })
     );
   }
 
   getStadiumById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/stadiums/${id}`).pipe(
-      catchError(() => of({ id, name: 'Sample Stadium', city: 'Sample City' }))
+      catchError((error) => {
+        console.error(`Failed to load stadium ${id}`, error);
+        return throwError(() => error);
+      })
     );
   }
 
   getCrowdStatus(stadiumId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/stadiums/${stadiumId}/crowd`).pipe(
-      catchError(() => of({ stadiumId, crowdLevel: 72, status: 'steady' }))
+      catchError((error) => {
+        console.error(`Failed to load crowd status for ${stadiumId}`, error);
+        return throwError(() => error);
+      })
     );
   }
 
   getMatches(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/matches`).pipe(
-      catchError(() => of([
-        { id: 'm-001', title: 'Mexico vs. Argentina', homeTeam: 'Mexico', awayTeam: 'Argentina', scheduledTime: new Date().toISOString() }
-      ]))
+      catchError((error) => {
+        console.error('Failed to load matches', error);
+        return throwError(() => error);
+      })
     );
   }
 
   queryAI(question: string, language: string = 'en'): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/ai/query`, { query: question, language }).pipe(
-      catchError(() => of({ query: question, reply: `Response to: ${question}`, language }))
+      catchError((error) => {
+        console.error('AI query failed', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getLiveMatch(stadiumId?: string): Observable<any> {
+    let params = new HttpParams();
+    if (stadiumId) {
+      params = params.set('stadiumId', stadiumId);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/matches/live`, { params }).pipe(
+      catchError((error) => {
+        console.error('Failed to load live match summary', error);
+        return throwError(() => error);
+      })
     );
   }
 
   createDispatch(stadiumId: string, actionType: string, description: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/dispatch`, { stadiumId, actionType, description }).pipe(
-      catchError(() => of({ id: 'dispatch-' + Date.now(), stadiumId, actionType, description }))
+      catchError((error) => {
+        console.error('Failed to create dispatch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getDispatches(stadiumId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/dispatches/${stadiumId}`).pipe(
+      catchError((error) => {
+        console.error(`Failed to load dispatches for ${stadiumId}`, error);
+        return throwError(() => error);
+      })
     );
   }
 
   getSustainability(stadiumId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/sustainability/${stadiumId}`).pipe(
-      catchError(() => of({ stadiumId, wasteReductionPct: 24, energySavingsPct: 4.8, waterSavingsPct: 92 }))
+      catchError((error) => {
+        console.error(`Failed to load sustainability metrics for ${stadiumId}`, error);
+        return throwError(() => error);
+      })
     );
   }
 }

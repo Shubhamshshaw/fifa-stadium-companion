@@ -1,41 +1,114 @@
 using FifaStadiumCompanion.Api.Domain;
+using Google.Cloud.Firestore;
 using System.Text.Json;
 
 namespace FifaStadiumCompanion.Api.Application;
 
 public sealed class VenueService
 {
-    private static readonly List<Venue> Venues = new()
+    private readonly CollectionReference _venuesCollection;
+
+    public VenueService(FirestoreDb firestoreDb)
     {
-        new("stadium-01", "MetLife Stadium", "New York", 82500, "https://via.placeholder.com/400?text=MetLife"),
-        new("stadium-02", "SoFi Stadium", "Los Angeles", 70240, "https://via.placeholder.com/400?text=SoFi"),
-        new("stadium-03", "AT&T Stadium", "Dallas", 80000, "https://via.placeholder.com/400?text=ATT"),
-        new("stadium-04", "Arrowhead Stadium", "Kansas City", 76416, "https://via.placeholder.com/400?text=Arrowhead"),
-        new("stadium-05", "Lumen Field", "Seattle", 69000, "https://via.placeholder.com/400?text=Lumen"),
-        new("stadium-06", "Mercedes-Benz Stadium", "Atlanta", 81500, "https://via.placeholder.com/400?text=MBenz"),
-    };
+        _venuesCollection = firestoreDb.Collection("venues");
+    }
 
-    public IEnumerable<Venue> GetAllVenues() => Venues;
+    public async Task<IEnumerable<Venue>> GetAllVenuesAsync()
+    {
+        var snapshot = await _venuesCollection.GetSnapshotAsync();
+        return snapshot.Documents
+            .Select(ToVenue)
+            .Where(v => v is not null)
+            .Select(v => v!)
+            .ToList();
+    }
 
-    public Venue? GetVenueById(string stadiumId) => Venues.FirstOrDefault(v => v.Id == stadiumId);
+    public async Task<Venue?> GetVenueByIdAsync(string stadiumId)
+    {
+        var snapshot = await _venuesCollection.Document(stadiumId).GetSnapshotAsync();
+        return ToVenue(snapshot);
+    }
+
+    private static Venue? ToVenue(DocumentSnapshot doc)
+    {
+        if (!doc.Exists)
+            return null;
+
+        doc.TryGetValue("imageUrl", out string? imageUrl);
+        return new Venue(
+            Id: doc.Id,
+            Name: doc.GetValue<string>("name"),
+            City: doc.GetValue<string>("city"),
+            Capacity: doc.GetValue<int>("capacity"),
+            ImageUrl: imageUrl
+        );
+    }
 }
 
 public sealed class MatchService
 {
-    private static readonly List<Match> Matches = new()
+    private readonly CollectionReference _matchesCollection;
+
+    public MatchService(FirestoreDb firestoreDb)
     {
-        new("m-001", "Mexico vs. Argentina", "Mexico", "Argentina", DateTime.UtcNow.AddHours(2), "stadium-01", "scheduled"),
-        new("m-002", "USA vs. Canada", "USA", "Canada", DateTime.UtcNow.AddHours(6), "stadium-02", "scheduled"),
-    };
+        _matchesCollection = firestoreDb.Collection("matches");
+    }
 
-    public IEnumerable<Match> GetMatchesByVenue(string stadiumId) => Matches.Where(m => m.StadiumId == stadiumId);
+    public async Task<IEnumerable<Match>> GetAllMatchesAsync()
+    {
+        var snapshot = await _matchesCollection.GetSnapshotAsync();
+        return snapshot.Documents
+            .Select(ToMatch)
+            .Where(m => m is not null)
+            .Select(m => m!)
+            .ToList();
+    }
 
-    public Match? GetMatchById(string matchId) => Matches.FirstOrDefault(m => m.Id == matchId);
+    public async Task<IEnumerable<Match>> GetMatchesByVenueAsync(string stadiumId)
+    {
+        var query = _matchesCollection.WhereEqualTo("stadiumId", stadiumId);
+        var snapshot = await query.GetSnapshotAsync();
+        return snapshot.Documents
+            .Select(ToMatch)
+            .Where(m => m is not null)
+            .Select(m => m!)
+            .ToList();
+    }
+
+    public async Task<Match?> GetMatchByIdAsync(string matchId)
+    {
+        var snapshot = await _matchesCollection.Document(matchId).GetSnapshotAsync();
+        return ToMatch(snapshot);
+    }
+
+    private static Match? ToMatch(DocumentSnapshot doc)
+    {
+        if (!doc.Exists)
+            return null;
+
+        var scheduledTime = doc.GetValue<Timestamp>("scheduledTime").ToDateTime();
+        var status = doc.TryGetValue("status", out string? statusValue) ? statusValue : "scheduled";
+
+        return new Match(
+            Id: doc.Id,
+            Title: doc.GetValue<string>("title"),
+            HomeTeam: doc.GetValue<string>("homeTeam"),
+            AwayTeam: doc.GetValue<string>("awayTeam"),
+            ScheduledTime: scheduledTime,
+            StadiumId: doc.GetValue<string>("stadiumId"),
+            Status: status
+        );
+    }
 }
 
 public sealed class DispatchService
 {
-    private static readonly List<Dispatch> Dispatches = new();
+    private readonly CollectionReference _dispatchesCollection;
+
+    public DispatchService(FirestoreDb firestoreDb)
+    {
+        _dispatchesCollection = firestoreDb.Collection("dispatches");
+    }
 
     public async Task<Dispatch> CreateDispatchAsync(string stadiumId, string actionType, string description, string? issuedBy = null)
     {
@@ -47,57 +120,96 @@ public sealed class DispatchService
             IssuedAt: DateTime.UtcNow,
             IssuedBy: issuedBy
         );
-        Dispatches.Add(dispatch);
+
+        await _dispatchesCollection.Document(dispatch.Id).SetAsync(new
+        {
+            dispatch.Id,
+            dispatch.StadiumId,
+            dispatch.ActionType,
+            dispatch.Description,
+            dispatch.IssuedAt,
+            dispatch.IssuedBy
+        });
+
         return dispatch;
     }
 
-    public IEnumerable<Dispatch> GetDispatchesByVenue(string stadiumId) => Dispatches.Where(d => d.StadiumId == stadiumId);
+    public async Task<IEnumerable<Dispatch>> GetDispatchesByVenueAsync(string stadiumId)
+    {
+        var query = _dispatchesCollection.WhereEqualTo("stadiumId", stadiumId);
+        var snapshot = await query.GetSnapshotAsync();
+        return snapshot.Documents
+            .Select(ToDispatch)
+            .Where(d => d is not null)
+            .Select(d => d!)
+            .ToList();
+    }
+
+    private static Dispatch? ToDispatch(DocumentSnapshot doc)
+    {
+        if (!doc.Exists)
+            return null;
+
+        doc.TryGetValue("issuedBy", out string? issuedBy);
+        return new Dispatch(
+            Id: doc.Id,
+            StadiumId: doc.GetValue<string>("stadiumId"),
+            ActionType: doc.GetValue<string>("actionType"),
+            Description: doc.GetValue<string>("description"),
+            IssuedAt: doc.GetValue<Timestamp>("issuedAt").ToDateTime(),
+            IssuedBy: issuedBy
+        );
+    }
 }
 
 public sealed class AiAssistanceService
 {
     private readonly string _geminiApiKey;
+    private readonly bool _allowMockFallback;
     private readonly HttpClient _httpClient;
     private const string GeminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
-    public AiAssistanceService(string? geminiApiKey = null)
+    public AiAssistanceService(string geminiApiKey, bool allowMockFallback = false)
     {
-        _geminiApiKey = geminiApiKey ?? "";
+        if (string.IsNullOrWhiteSpace(geminiApiKey) && !allowMockFallback)
+        {
+            throw new InvalidOperationException("GEMINI_API_KEY must be configured for AI assistance.");
+        }
+
+        _geminiApiKey = geminiApiKey ?? string.Empty;
+        _allowMockFallback = allowMockFallback;
         _httpClient = new HttpClient();
     }
 
     public async Task<string> QueryAsync(string question, string? language = "en")
     {
-        // If no API key, return mock response
+        var systemPrompt = GetSystemPromptForLanguage(language);
+        var requestBody = new
+        {
+            instances = new[]
+            {
+                new { content = $"{systemPrompt}\n\nUser question: {question}" }
+            }
+        };
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+
         if (string.IsNullOrWhiteSpace(_geminiApiKey))
         {
-            return GetMockResponse(question, language);
+            if (_allowMockFallback)
+            {
+                return GetMockResponse(question, language);
+            }
+
+            throw new InvalidOperationException("GEMINI_API_KEY must be configured for AI assistance.");
         }
 
         try
         {
-            // Prepare the request for Gemini API
-            var systemPrompt = GetSystemPromptForLanguage(language);
-            var requestBody = new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        parts = new[]
-                        {
-                            new { text = $"{systemPrompt}\n\nUser question: {question}" }
-                        }
-                    }
-                }
-            };
-
-            var content = new StringContent(
-                JsonSerializer.Serialize(requestBody),
-                System.Text.Encoding.UTF8,
-                "application/json"
-            );
-
             var response = await _httpClient.PostAsync(
                 $"{GeminiEndpoint}?key={_geminiApiKey}",
                 content
@@ -105,46 +217,95 @@ public sealed class AiAssistanceService
 
             if (!response.IsSuccessStatusCode)
             {
-                return GetMockResponse(question, language);
+                var errorBody = await response.Content.ReadAsStringAsync();
+                if (_allowMockFallback)
+                {
+                    return GetMockResponse(question, language);
+                }
+
+                throw new InvalidOperationException($"Gemini API request failed: {response.StatusCode} - {errorBody}");
             }
 
             var responseText = await response.Content.ReadAsStringAsync();
             using var jsonDoc = JsonDocument.Parse(responseText);
-            var jsonResponse = jsonDoc.RootElement;
+            var root = jsonDoc.RootElement;
 
-            // Extract the AI response from the Gemini API response
-            if (jsonResponse.TryGetProperty("candidates", out var candidates) &&
-                candidates.GetArrayLength() > 0 &&
-                candidates[0].TryGetProperty("content", out var responseContent) &&
-                responseContent.TryGetProperty("parts", out var parts) &&
-                parts.GetArrayLength() > 0 &&
-                parts[0].TryGetProperty("text", out var text))
-            {
-                return text.GetString() ?? GetMockResponse(question, language);
-            }
+            if (TryExtractAnswer(root, out var answer))
+                return answer;
 
-            return GetMockResponse(question, language);
+            if (_allowMockFallback)
+                return GetMockResponse(question, language);
+
+            throw new InvalidOperationException("Gemini API returned an unexpected response format.");
         }
         catch
         {
-            // On any error, return mock response
-            return GetMockResponse(question, language);
+            if (_allowMockFallback)
+                return GetMockResponse(question, language);
+
+            throw;
         }
     }
 
-    private string GetSystemPromptForLanguage(string? language) =>
+    private string GetMockResponse(string question, string? language)
+    {
+        return language switch
+        {
+            "es" => $"Respuesta a tu pregunta: {question}",
+            "fr" => $"Réponse à ta question: {question}",
+            _ => $"Response to your question: {question}"
+        };
+    }
+
+    private static bool TryExtractAnswer(JsonElement root, out string answer)
+    {
+        if (root.TryGetProperty("predictions", out var predictions) && predictions.GetArrayLength() > 0)
+        {
+            var firstPrediction = predictions[0];
+            if (firstPrediction.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String)
+            {
+                answer = content.GetString() ?? string.Empty;
+                return !string.IsNullOrWhiteSpace(answer);
+            }
+
+            if (firstPrediction.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+            {
+                var candidate = candidates[0];
+                if (candidate.TryGetProperty("content", out var candidateContent) && candidateContent.ValueKind == JsonValueKind.String)
+                {
+                    answer = candidateContent.GetString() ?? string.Empty;
+                    return !string.IsNullOrWhiteSpace(answer);
+                }
+            }
+        }
+
+        if (root.TryGetProperty("candidates", out var candidatesRoot) && candidatesRoot.GetArrayLength() > 0)
+        {
+            var candidate = candidatesRoot[0];
+            if (candidate.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String)
+            {
+                answer = content.GetString() ?? string.Empty;
+                return !string.IsNullOrWhiteSpace(answer);
+            }
+
+            if (candidate.TryGetProperty("content", out var contentObj) && contentObj.ValueKind == JsonValueKind.Object &&
+                contentObj.TryGetProperty("parts", out var parts) && parts.GetArrayLength() > 0 &&
+                parts[0].TryGetProperty("text", out var text))
+            {
+                answer = text.GetString() ?? string.Empty;
+                return !string.IsNullOrWhiteSpace(answer);
+            }
+        }
+
+        answer = string.Empty;
+        return false;
+    }
+
+    private static string GetSystemPromptForLanguage(string? language) =>
         language switch
         {
             "es" => "Eres un asistente de fútbol en un estadio. Responde en español brevemente y de manera útil para un aficionado de fútbol.",
             "fr" => "Vous êtes un assistant de football dans un stade. Répondez en français brièvement et de manière utile pour un supporter de football.",
             _ => "You are a helpful football stadium assistant. Answer briefly and provide useful information for football fans."
-        };
-
-    private string GetMockResponse(string question, string? language) =>
-        language switch
-        {
-            "es" => $"Respuesta a tu pregunta: {question}",
-            "fr" => $"Réponse à ta question: {question}",
-            _ => $"Response to your question: {question}"
         };
 }
