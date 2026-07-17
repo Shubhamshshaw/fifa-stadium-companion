@@ -56,6 +56,23 @@ ng serve
 # Should load stadiums from backend
 ```
 
+### 1.4 Local Firebase Emulator
+
+For local development without production Firebase credentials, use the Firebase emulator:
+
+```bash
+firebase emulators:start --only firestore,auth
+```
+
+Then add the emulator host values to your `.env` file:
+
+```bash
+FIRESTORE_EMULATOR_HOST=localhost:8080
+FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099
+```
+
+The backend is already configured to detect these settings and switch into emulator-safe mode.
+
 ## Phase 2: Integrate Gemini API
 
 ### Current Implementation

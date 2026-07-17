@@ -57,6 +57,25 @@ npm install
 ng serve
 ```
 
+### Local Firebase Emulator
+
+For local development without production Firebase credentials, enable the emulator and use the local host values in `.env`:
+
+```bash
+firebase emulators:start --only firestore,auth
+```
+
+Set these values in your `.env` for emulator mode:
+
+```bash
+FIRESTORE_EMULATOR_HOST=localhost:8080
+FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099
+```
+
+These ports match the emulator configuration in `firebase.json`.
+
+Then run the server as normal. The backend now detects emulator mode and bypasses production Admin SDK credentials for local testing.
+
 ### Production Build
 
 ```bash

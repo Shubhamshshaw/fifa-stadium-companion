@@ -29,19 +29,40 @@ if (builder.Environment.IsDevelopment())
 }
 
 // Get configuration from environment
+var useFirestoreEmulator = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
+var useAuthEmulator = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FIREBASE_AUTH_EMULATOR_HOST"));
+
 var firebaseProjectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")
-    ?? throw new InvalidOperationException("FIREBASE_PROJECT_ID must be configured.");
+    ?? ((useFirestoreEmulator || useAuthEmulator)
+        ? "fifa-stadium-companion"
+        : throw new InvalidOperationException("FIREBASE_PROJECT_ID must be configured."));
 
 var geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
     ?? throw new InvalidOperationException("GEMINI_API_KEY must be configured for AI assistance.");
 
 if (FirebaseApp.DefaultInstance == null)
 {
-    FirebaseApp.Create(new AppOptions
+    var appOptions = new AppOptions { ProjectId = firebaseProjectId };
+
+    if (useAuthEmulator || useFirestoreEmulator)
     {
-        Credential = GoogleCredential.GetApplicationDefault(),
-        ProjectId = firebaseProjectId
-    });
+        appOptions.Credential = GoogleCredential.FromAccessToken("owner");
+    }
+    else
+    {
+        try
+        {
+            appOptions.Credential = GoogleCredential.GetApplicationDefault();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "Firebase Admin credentials were not found. Set GOOGLE_APPLICATION_CREDENTIALS or start the Firestore/Auth emulator with FIRESTORE_EMULATOR_HOST/FIREBASE_AUTH_EMULATOR_HOST.",
+                ex);
+        }
+    }
+
+    FirebaseApp.Create(appOptions);
 }
 
 var firestoreDb = FirestoreDb.Create(firebaseProjectId);

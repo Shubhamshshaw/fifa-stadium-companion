@@ -72,6 +72,25 @@ cd client
 ng serve
 ```
 
+### Local Firebase Emulator
+
+When you want to run locally without production Firebase credentials, start the emulator:
+
+```bash
+firebase emulators:start --only firestore,auth
+```
+
+Add these values to your local `.env` file:
+
+```bash
+FIRESTORE_EMULATOR_HOST=localhost:8080
+FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099
+```
+
+These host values match the emulator ports declared in `firebase.json`.
+
+The backend detects emulator mode and uses local Firestore/Auth without requiring production Admin SDK credentials.
+
 ## Features
 
 ### For Fans

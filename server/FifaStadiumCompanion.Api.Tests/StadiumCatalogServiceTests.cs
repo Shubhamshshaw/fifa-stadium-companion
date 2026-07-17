@@ -4,15 +4,28 @@ using System.Linq;
 
 namespace FifaStadiumCompanion.Api.Tests;
 
+internal static class FirestoreTestHelper
+{
+    public static bool CanCreateFirestore() =>
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST")) ||
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS"));
+
+    public static FirestoreDb CreateTestFirestoreDb()
+    {
+        var projectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID") ?? "fifa-stadium-companion";
+        return FirestoreDb.Create(projectId);
+    }
+}
+
 public class StadiumCatalogServiceTests
 {
     [Fact]
     public async Task GetLiveMatchAsync_ReturnsSummaryOrFallback()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
+        if (!FirestoreTestHelper.CanCreateFirestore())
             return;
 
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new StadiumCatalogService(firestoreDb);
 
         var summary = await service.GetLiveMatchAsync();
@@ -25,7 +38,10 @@ public class StadiumCatalogServiceTests
     [Fact]
     public async Task GetSustainabilitySnapshot_ReturnsDataForKnownVenue()
     {
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        if (!FirestoreTestHelper.CanCreateFirestore())
+            return;
+
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new StadiumCatalogService(firestoreDb);
 
         var snapshot = await service.GetSustainabilitySnapshotAsync("stadium-01");
@@ -41,10 +57,10 @@ public class VenueServiceTests
     [Fact]
     public async Task GetAllVenues_ReturnsCollection()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
+        if (!FirestoreTestHelper.CanCreateFirestore())
             return;
 
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new VenueService(firestoreDb);
 
         var venues = (await service.GetAllVenuesAsync()).ToList();
@@ -55,10 +71,10 @@ public class VenueServiceTests
     [Fact]
     public async Task GetVenueById_DoesNotThrow()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
+        if (!FirestoreTestHelper.CanCreateFirestore())
             return;
 
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new VenueService(firestoreDb);
 
         var venue = await service.GetVenueByIdAsync("stadium-01");
@@ -72,10 +88,10 @@ public class MatchServiceTests
     [Fact]
     public async Task GetMatchesByVenue_DoesNotThrow()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
+        if (!FirestoreTestHelper.CanCreateFirestore())
             return;
 
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new MatchService(firestoreDb);
 
         var matches = (await service.GetMatchesByVenueAsync("stadium-01")).ToList();
@@ -86,10 +102,10 @@ public class MatchServiceTests
     [Fact]
     public async Task GetMatchById_DoesNotThrow()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
+        if (!FirestoreTestHelper.CanCreateFirestore())
             return;
 
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new MatchService(firestoreDb);
 
         var match = await service.GetMatchByIdAsync("m-001");
@@ -103,7 +119,10 @@ public class DispatchServiceTests
     [Fact]
     public async Task CreateDispatchAsync_CreatesNewDispatch()
     {
-        var firestoreDb = FirestoreDb.Create("fifa-stadium-companion");
+        if (!FirestoreTestHelper.CanCreateFirestore())
+            return;
+
+        var firestoreDb = FirestoreTestHelper.CreateTestFirestoreDb();
         var service = new DispatchService(firestoreDb);
 
         var dispatch = await service.CreateDispatchAsync("stadium-01", "crowd-control", "Close entrance B", "staff-123");

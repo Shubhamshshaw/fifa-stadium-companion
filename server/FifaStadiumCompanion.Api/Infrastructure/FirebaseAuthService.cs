@@ -23,10 +23,33 @@ public sealed class FirebaseAuthService : IFirebaseAuthService
         if (FirebaseApp.DefaultInstance != null)
             return;
 
-        FirebaseApp.Create(new AppOptions
+        var projectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID") ?? "fifa-stadium-companion";
+        var useAuthEmulator = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FIREBASE_AUTH_EMULATOR_HOST"));
+
+        var options = new AppOptions
         {
-            Credential = GoogleCredential.GetApplicationDefault()
-        });
+            ProjectId = projectId
+        };
+
+        if (useAuthEmulator)
+        {
+            options.Credential = GoogleCredential.FromAccessToken("owner");
+        }
+        else
+        {
+            try
+            {
+                options.Credential = GoogleCredential.GetApplicationDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    "Firebase Admin credentials were not found. Set GOOGLE_APPLICATION_CREDENTIALS or start the Firebase auth emulator.",
+                    ex);
+            }
+        }
+
+        FirebaseApp.Create(options);
     }
 
     public async Task<FirebaseUser?> ValidateIdTokenAsync(string idToken)
