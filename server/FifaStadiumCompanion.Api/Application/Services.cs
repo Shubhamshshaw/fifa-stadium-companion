@@ -10,7 +10,7 @@ public sealed class VenueService
 
     public VenueService(FirestoreDb firestoreDb)
     {
-        _venuesCollection = firestoreDb.Collection("venues");
+        _venuesCollection = firestoreDb.Collection("stadiums");
     }
 
     public async Task<IEnumerable<Venue>> GetAllVenuesAsync()
@@ -167,7 +167,9 @@ public sealed class AiAssistanceService
     private readonly string _geminiApiKey;
     private readonly bool _allowMockFallback;
     private readonly HttpClient _httpClient;
-    private const string GeminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+    // Gemini REST API — generateContent endpoint (gemini-2.0-flash)
+    private const string GeminiModel = "gemini-2.0-flash";
+    private const string GeminiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
 
     public AiAssistanceService(string geminiApiKey, bool allowMockFallback = false)
     {
@@ -183,54 +185,61 @@ public sealed class AiAssistanceService
 
     public async Task<string> QueryAsync(string question, string? language = "en")
     {
+        if (string.IsNullOrWhiteSpace(_geminiApiKey))
+        {
+            if (_allowMockFallback)
+                return GetMockResponse(question, language);
+
+            throw new InvalidOperationException("GEMINI_API_KEY must be configured for AI assistance.");
+        }
+
         var systemPrompt = GetSystemPromptForLanguage(language);
+
+        // Gemini REST API request body: contents[].parts[].text
         var requestBody = new
         {
-            instances = new[]
+            contents = new[]
             {
-                new { content = $"{systemPrompt}\n\nUser question: {question}" }
+                new
+                {
+                    parts = new[]
+                    {
+                        new { text = $"{systemPrompt}\n\nUser question: {question}" }
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                temperature = 0.7,
+                maxOutputTokens = 512
             }
         };
 
-        var content = new StringContent(
+        var httpContent = new StringContent(
             JsonSerializer.Serialize(requestBody),
             System.Text.Encoding.UTF8,
             "application/json"
         );
 
-        if (string.IsNullOrWhiteSpace(_geminiApiKey))
-        {
-            if (_allowMockFallback)
-            {
-                return GetMockResponse(question, language);
-            }
-
-            throw new InvalidOperationException("GEMINI_API_KEY must be configured for AI assistance.");
-        }
-
         try
         {
-            var response = await _httpClient.PostAsync(
-                $"{GeminiEndpoint}?key={_geminiApiKey}",
-                content
-            );
+            var url = $"{GeminiBaseUrl}/{GeminiModel}:generateContent?key={_geminiApiKey}";
+            var response = await _httpClient.PostAsync(url, httpContent);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorBody = await response.Content.ReadAsStringAsync();
                 if (_allowMockFallback)
-                {
                     return GetMockResponse(question, language);
-                }
 
-                throw new InvalidOperationException($"Gemini API request failed: {response.StatusCode} - {errorBody}");
+                throw new InvalidOperationException(
+                    $"Gemini API request failed: {response.StatusCode} — {errorBody}");
             }
 
             var responseText = await response.Content.ReadAsStringAsync();
             using var jsonDoc = JsonDocument.Parse(responseText);
-            var root = jsonDoc.RootElement;
 
-            if (TryExtractAnswer(root, out var answer))
+            if (TryExtractAnswer(jsonDoc.RootElement, out var answer))
                 return answer;
 
             if (_allowMockFallback)
@@ -238,74 +247,62 @@ public sealed class AiAssistanceService
 
             throw new InvalidOperationException("Gemini API returned an unexpected response format.");
         }
-        catch
+        catch (Exception) when (_allowMockFallback)
         {
-            if (_allowMockFallback)
-                return GetMockResponse(question, language);
-
-            throw;
+            return GetMockResponse(question, language);
         }
     }
 
-    private string GetMockResponse(string question, string? language)
-    {
-        return language switch
-        {
-            "es" => $"Respuesta a tu pregunta: {question}",
-            "fr" => $"Réponse à ta question: {question}",
-            _ => $"Response to your question: {question}"
-        };
-    }
-
+    // Parses Gemini REST generateContent response:
+    // { "candidates": [{ "content": { "parts": [{ "text": "..." }] } }] }
     private static bool TryExtractAnswer(JsonElement root, out string answer)
     {
-        if (root.TryGetProperty("predictions", out var predictions) && predictions.GetArrayLength() > 0)
-        {
-            var firstPrediction = predictions[0];
-            if (firstPrediction.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String)
-            {
-                answer = content.GetString() ?? string.Empty;
-                return !string.IsNullOrWhiteSpace(answer);
-            }
-
-            if (firstPrediction.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
-            {
-                var candidate = candidates[0];
-                if (candidate.TryGetProperty("content", out var candidateContent) && candidateContent.ValueKind == JsonValueKind.String)
-                {
-                    answer = candidateContent.GetString() ?? string.Empty;
-                    return !string.IsNullOrWhiteSpace(answer);
-                }
-            }
-        }
-
-        if (root.TryGetProperty("candidates", out var candidatesRoot) && candidatesRoot.GetArrayLength() > 0)
-        {
-            var candidate = candidatesRoot[0];
-            if (candidate.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String)
-            {
-                answer = content.GetString() ?? string.Empty;
-                return !string.IsNullOrWhiteSpace(answer);
-            }
-
-            if (candidate.TryGetProperty("content", out var contentObj) && contentObj.ValueKind == JsonValueKind.Object &&
-                contentObj.TryGetProperty("parts", out var parts) && parts.GetArrayLength() > 0 &&
-                parts[0].TryGetProperty("text", out var text))
-            {
-                answer = text.GetString() ?? string.Empty;
-                return !string.IsNullOrWhiteSpace(answer);
-            }
-        }
-
         answer = string.Empty;
-        return false;
+
+        if (!root.TryGetProperty("candidates", out var candidates) || candidates.GetArrayLength() == 0)
+            return false;
+
+        var candidate = candidates[0];
+        if (!candidate.TryGetProperty("content", out var contentObj))
+            return false;
+
+        if (!contentObj.TryGetProperty("parts", out var parts) || parts.GetArrayLength() == 0)
+            return false;
+
+        if (!parts[0].TryGetProperty("text", out var textEl))
+            return false;
+
+        answer = textEl.GetString() ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(answer);
+    }
+
+    private static string GetMockResponse(string question, string? language)
+    {
+        var q = question.ToLowerInvariant();
+        var hint = q.Contains("capacity")  ? "Check your stadium card for the exact capacity figure shown above." :
+                   q.Contains("exit") || q.Contains("safety") || q.Contains("emergency")
+                                           ? "Emergency exits are marked in green at every gate level. Follow steward instructions at all times." :
+                   q.Contains("food") || q.Contains("eat") || q.Contains("drink")
+                                           ? "Concession stands are open on Levels 1 and 3. Halal-certified options available at all outlets." :
+                   q.Contains("park")      ? "Official parking is at Lot A (Gate 1) and Lot C (Gate 7). Shuttles run every 10 minutes." :
+                   q.Contains("ticket")   ? "Ticket scanning opens 2 hours before kick-off. Digital tickets accepted at all gates." :
+                   q.Contains("transport") || q.Contains("metro") || q.Contains("bus")
+                                           ? "The stadium is served by the Doha Metro Gold Line. Free shuttle buses run from the Fan Zone every 15 minutes." :
+                                            "Our stewards are happy to assist you on-site. Look for staff in yellow vests at every gate entrance.";
+
+        return language switch
+        {
+            "es" => $"Asistente del Estadio FIFA 2026: {hint}",
+            "fr" => $"Assistant Stade FIFA 2026: {hint}",
+            _   => $"FIFA 2026 Stadium Assistant: {hint}"
+        };
     }
 
     private static string GetSystemPromptForLanguage(string? language) =>
         language switch
         {
-            "es" => "Eres un asistente de fútbol en un estadio. Responde en español brevemente y de manera útil para un aficionado de fútbol.",
-            "fr" => "Vous êtes un assistant de football dans un stade. Répondez en français brièvement et de manière utile pour un supporter de football.",
-            _ => "You are a helpful football stadium assistant. Answer briefly and provide useful information for football fans."
+            "es" => "Eres un asistente inteligente de un estadio del Mundial FIFA 2026, impulsado por Google Gemini. Responde en español de forma breve y precisa. Proporciona información útil sobre el estadio, seguridad, servicios, transporte y experiencia del partido para los aficionados.",
+            "fr" => "Vous êtes un assistant intelligent d'un stade de la Coupe du Monde FIFA 2026, propulsé par Google Gemini. Répondez en français brièvement. Fournissez des informations utiles sur le stade, la sécurité, les services, les transports et l'expérience du match.",
+            _   => "You are an intelligent FIFA World Cup 2026 stadium assistant powered by Google Gemini. Provide helpful, accurate, and concise answers for football fans about: stadium facilities, safety exits, food & beverage, transportation, crowd management, match schedules, and the overall fan experience. Limit answers to 2-3 sentences."
         };
 }

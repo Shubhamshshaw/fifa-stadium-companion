@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: '/api',
+  apiUrl: 'http://localhost:5134/api',
   firebaseConfig: {
     apiKey: '<REDACTED - set in env variables or deploy config>',
     authDomain: 'fifa-stadium-companion.firebaseapp.com',

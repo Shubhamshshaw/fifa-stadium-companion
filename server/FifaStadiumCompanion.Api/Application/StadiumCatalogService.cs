@@ -10,7 +10,7 @@ public sealed class StadiumCatalogService
 
     public StadiumCatalogService(FirestoreDb firestoreDb)
     {
-        _venuesCollection = firestoreDb.Collection("venues");
+        _venuesCollection = firestoreDb.Collection("stadiums");
         _matchesCollection = firestoreDb.Collection("matches");
     }
 
