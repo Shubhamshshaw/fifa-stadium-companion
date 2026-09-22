@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Formatter, Validator & Tree Viewer | OmniUtil</title>
+  <meta name="description" content="Format, prettify, minify, and validate JSON data online. Features real-time error detection, custom indentation, and interactive tree view.">
+  <meta name="keywords" content="json formatter, json validator, json prettifier, json minifier, json tree viewer, format json online">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/json-formatter.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="JSON Formatter & Validator | OmniUtil">
+  <meta property="og:description" content="Prettify, minify, and validate JSON data with live tree view inspection.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/json-formatter.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>{ } JSON Formatter & Validator</h1>
+            <p class="tool-description">Prettify, minify, validate, and debug JSON data structures with instant syntax check.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+          <button class="btn btn-sm btn-primary" onclick="formatJSON(2)">Format (2 Spaces)</button>
+          <button class="btn btn-sm" onclick="formatJSON(4)">Format (4 Spaces)</button>
+          <button class="btn btn-sm" onclick="minifyJSON()">Minify JSON</button>
+          <button class="btn btn-sm" onclick="loadSample()">Load Sample</button>
+          <button class="btn btn-sm" onclick="copyFormatted()">Copy JSON</button>
+        </div>
+
+        <div id="error-banner" style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--danger); color: var(--danger); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; font-family: monospace; margin-bottom: 1rem;"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Input JSON:</label>
+            <textarea id="json-input" class="textarea-field" style="min-height: 360px; font-family: 'Fira Code', monospace;" placeholder="Paste raw JSON here..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Formatted Output:</label>
+            <textarea id="json-output" class="textarea-field" style="min-height: 360px; font-family: 'Fira Code', monospace;" readonly></textarea>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000008" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    const jsonInput = document.getElementById('json-input');
+    const jsonOutput = document.getElementById('json-output');
+    const errorBanner = document.getElementById('error-banner');
+
+    jsonInput.addEventListener('input', () => formatJSON(2, false));
+
+    function formatJSON(indent = 2, alertOnError = true) {
+      errorBanner.style.display = 'none';
+      if (!jsonInput.value.trim()) {
+        jsonOutput.value = '';
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(jsonInput.value);
+        jsonOutput.value = JSON.stringify(parsed, null, indent);
+      } catch (err) {
+        errorBanner.style.display = 'block';
+        errorBanner.textContent = `Syntax Error: ${err.message}`;
+        if (alertOnError) showToast('Invalid JSON structure', 'error');
+      }
+    }
+
+    function minifyJSON() {
+      errorBanner.style.display = 'none';
+      if (!jsonInput.value.trim()) return;
+      try {
+        const parsed = JSON.parse(jsonInput.value);
+        jsonOutput.value = JSON.stringify(parsed);
+      } catch (err) {
+        errorBanner.style.display = 'block';
+        errorBanner.textContent = `Syntax Error: ${err.message}`;
+      }
+    }
+
+    function loadSample() {
+      const sample = {
+        name: "OmniUtil Suite",
+        version: "1.0.0",
+        features: ["14 Browser Tools", "Client-side Execution", "Zero Data Collection"],
+        active: true,
+        stats: { tools: 14, lighthouseScore: 100 }
+      };
+      jsonInput.value = JSON.stringify(sample);
+      formatJSON(2);
+    }
+
+    function copyFormatted() {
+      if (!jsonOutput.value) return;
+      copyToClipboard(jsonOutput.value, 'Formatted JSON copied!');
+    }
+
+    loadSample();
+  </script>
+</body>
+</html>

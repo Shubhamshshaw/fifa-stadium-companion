@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Word Counter & Character Counter Tool | OmniUtil</title>
+  <meta name="description" content="Free online word counter and text stats analyzer. Count words, characters, sentences, paragraphs, reading time, and keyword density instantly.">
+  <meta name="keywords" content="word counter, character counter, text analyzer, count words online, reading time calculator">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/word-counter.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Real-Time Word Counter & Character Counter Tool | OmniUtil">
+  <meta property="og:description" content="Count words, characters, paragraphs, sentences, and reading time in real time.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/word-counter.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>📝 Word Counter</h1>
+            <p class="tool-description">Analyze text stats, word density, reading duration, and character counts live as you type.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div id="stat-words" class="stat-value">0</div>
+            <div class="stat-label">Words</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-chars" class="stat-value">0</div>
+            <div class="stat-label">Characters</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-chars-nospace" class="stat-value">0</div>
+            <div class="stat-label">Chars (no space)</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-sentences" class="stat-value">0</div>
+            <div class="stat-label">Sentences</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-paragraphs" class="stat-value">0</div>
+            <div class="stat-label">Paragraphs</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-reading" class="stat-value">0s</div>
+            <div class="stat-label">Reading Time</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>Input Text:</span>
+            <div>
+              <button class="btn btn-sm" onclick="clearText()">Clear</button>
+              <button class="btn btn-sm btn-primary" onclick="copyText()">Copy Text</button>
+            </div>
+          </div>
+          <textarea id="text-input" class="textarea-field" style="min-height: 250px;" placeholder="Type or paste your text here to count words..."></textarea>
+        </div>
+
+        <!-- Keyword Density Breakdown -->
+        <div style="margin-top: 1.5rem;">
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Top Word Density</h3>
+          <div id="density-container" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Start typing to generate word density analysis.</span>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000003" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    const textInput = document.getElementById('text-input');
+
+    textInput.addEventListener('input', analyzeText);
+
+    function analyzeText() {
+      const text = textInput.value;
+      
+      const words = text.trim() ? text.trim().split(/\s+/).filter(w => w.length > 0) : [];
+      const wordCount = words.length;
+      const charCount = text.length;
+      const charNoSpaceCount = text.replace(/\s/g, '').length;
+      const sentences = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim().length > 0).length : 0;
+      const paragraphs = text.trim() ? text.split(/\n+/).filter(p => p.trim().length > 0).length : 0;
+
+      // Reading time (approx 200 words per min)
+      const readSeconds = Math.ceil((wordCount / 200) * 60);
+      const readFormatted = readSeconds < 60 ? `${readSeconds}s` : `${Math.floor(readSeconds / 60)}m ${readSeconds % 60}s`;
+
+      document.getElementById('stat-words').textContent = wordCount.toLocaleString();
+      document.getElementById('stat-chars').textContent = charCount.toLocaleString();
+      document.getElementById('stat-chars-nospace').textContent = charNoSpaceCount.toLocaleString();
+      document.getElementById('stat-sentences').textContent = sentences.toLocaleString();
+      document.getElementById('stat-paragraphs').textContent = paragraphs.toLocaleString();
+      document.getElementById('stat-reading').textContent = readFormatted;
+
+      // Top word density
+      const wordFreq = {};
+      const stopWords = new Set(['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from']);
+      words.forEach(w => {
+        const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (clean.length > 2 && !stopWords.has(clean)) {
+          wordFreq[clean] = (wordFreq[clean] || 0) + 1;
+        }
+      });
+
+      const sorted = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      const densityContainer = document.getElementById('density-container');
+      if (sorted.length === 0) {
+        densityContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Start typing to generate word density analysis.</span>';
+      } else {
+        densityContainer.innerHTML = sorted.map(([w, freq]) => {
+          const pct = Math.round((freq / wordCount) * 100);
+          return `<span style="background: var(--bg-secondary); border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 0.35rem 0.75rem; font-size: 0.85rem;"><strong>${w}</strong>: ${freq} (${pct}%)</span>`;
+        }).join('');
+      }
+    }
+
+    function clearText() {
+      textInput.value = '';
+      analyzeText();
+    }
+
+    function copyText() {
+      if (!textInput.value) return;
+      copyToClipboard(textInput.value, 'Text copied to clipboard!');
+    }
+  </script>
+</body>
+</html>

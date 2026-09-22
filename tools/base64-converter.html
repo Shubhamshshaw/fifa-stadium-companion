@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base64 Encoder & Decoder for Text & Files | OmniUtil</title>
+  <meta name="description" content="Encode and decode text strings or raw binary files into Base64 format online. Includes URL-safe encoding and file Data URL generator.">
+  <meta name="keywords" content="base64 encoder, base64 decoder, text to base64, base64 to text, file base64 converter, data url generator">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/base64-converter.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Base64 Encoder & Decoder | OmniUtil">
+  <meta property="og:description" content="Encode and decode text or files to Base64 format client-side.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/base64-converter.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>🔐 Base64 Encoder / Decoder</h1>
+            <p class="tool-description">Convert text strings or raw files to and from Base64 string formats.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button id="btn-encode-mode" class="btn btn-primary" onclick="setMode('encode')">Encode Mode</button>
+          <button id="btn-decode-mode" class="btn" onclick="setMode('decode')">Decode Mode</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label"><span id="input-label">Input Text to Encode:</span></label>
+          <textarea id="base64-input" class="textarea-field" style="min-height: 160px;" placeholder="Type or paste content here...">Hello World! OmniUtil Browser Tools 2026</textarea>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>Result:</span>
+            <button class="btn btn-sm btn-primary" onclick="copyOutput()">Copy Result</button>
+          </div>
+          <textarea id="base64-output" class="textarea-field" style="min-height: 160px;" readonly></textarea>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000010" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    let mode = 'encode';
+    const input = document.getElementById('base64-input');
+    const output = document.getElementById('base64-output');
+
+    input.addEventListener('input', processBase64);
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btn-encode-mode').className = m === 'encode' ? 'btn btn-primary' : 'btn';
+      document.getElementById('btn-decode-mode').className = m === 'decode' ? 'btn btn-primary' : 'btn';
+      document.getElementById('input-label').textContent = m === 'encode' ? 'Input Text to Encode:' : 'Input Base64 String to Decode:';
+      processBase64();
+    }
+
+    function processBase64() {
+      const text = input.value;
+      if (!text) {
+        output.value = '';
+        return;
+      }
+
+      try {
+        if (mode === 'encode') {
+          output.value = btoa(unescape(encodeURIComponent(text)));
+        } else {
+          output.value = decodeURIComponent(escape(atob(text)));
+        }
+      } catch (e) {
+        output.value = `Error: Invalid Base64 string for decoding`;
+      }
+    }
+
+    function copyOutput() {
+      if (!output.value) return;
+      copyToClipboard(output.value, 'Result copied!');
+    }
+
+    processBase64();
+  </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exact Age Calculator - Calculate Age in Years, Months, Days | OmniUtil</title>
+  <meta name="description" content="Calculate your exact age down to the second. Displays age in years, months, days, total hours, zodiac sign, and next birthday countdown timer.">
+  <meta name="keywords" content="age calculator, exact age, calculate age, birthdate calculator, zodiac sign calculator, birthday countdown">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/age-calculator.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Exact Age Calculator | OmniUtil">
+  <meta property="og:description" content="Calculate exact age in years, months, days, hours, and seconds with live countdown ticker.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/age-calculator.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>🎂 Age Calculator</h1>
+            <p class="tool-description">Real-time age calculation breakdown with second-by-second ticker & milestone stats.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="form-group">
+            <label class="form-label">Date of Birth:</label>
+            <input type="date" id="dob-input" value="1998-05-15" class="input-field">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Age at Date:</label>
+            <input type="date" id="target-date" class="input-field">
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div id="age-years" class="stat-value">0</div><div class="stat-label">Years</div></div>
+          <div class="stat-card"><div id="age-months" class="stat-value">0</div><div class="stat-label">Months</div></div>
+          <div class="stat-card"><div id="age-days" class="stat-value">0</div><div class="stat-label">Days</div></div>
+          <div class="stat-card"><div id="age-seconds" class="stat-value" style="font-size: 1.2rem;">0</div><div class="stat-label">Seconds</div></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem;">
+          <div class="stat-card" style="text-align: left;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Total Days Lived</div>
+            <div id="total-days" style="font-size: 1.25rem; font-weight: 700; color: var(--accent-primary);">0 days</div>
+          </div>
+          <div class="stat-card" style="text-align: left;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Zodiac Sign</div>
+            <div id="zodiac-sign" style="font-size: 1.25rem; font-weight: 700; color: var(--accent-secondary);">Taurus ♉</div>
+          </div>
+          <div class="stat-card" style="text-align: left;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Next Birthday</div>
+            <div id="next-bday" style="font-size: 1.25rem; font-weight: 700; color: var(--success);">In 0 days</div>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000006" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    const dobInput = document.getElementById('dob-input');
+    const targetDateInput = document.getElementById('target-date');
+
+    // Set target date default to today
+    const todayStr = new Date().toISOString().split('T')[0];
+    targetDateInput.value = todayStr;
+
+    dobInput.addEventListener('change', calculateAge);
+    targetDateInput.addEventListener('change', calculateAge);
+
+    setInterval(calculateAge, 1000);
+
+    function calculateAge() {
+      const dobVal = dobInput.value;
+      if (!dobVal) return;
+
+      const birthDate = new Date(dobVal);
+      const targetDate = targetDateInput.value ? new Date(targetDateInput.value + 'T' + new Date().toTimeString().split(' ')[0]) : new Date();
+
+      if (birthDate > targetDate) {
+        document.getElementById('age-years').textContent = '0';
+        document.getElementById('age-months').textContent = '0';
+        document.getElementById('age-days').textContent = '0';
+        document.getElementById('age-seconds').textContent = '0';
+        return;
+      }
+
+      let y = targetDate.getFullYear() - birthDate.getFullYear();
+      let m = targetDate.getMonth() - birthDate.getMonth();
+      let d = targetDate.getDate() - birthDate.getDate();
+
+      if (d < 0) {
+        m--;
+        const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0).getDate();
+        d += prevMonth;
+      }
+      if (m < 0) {
+        y--;
+        m += 12;
+      }
+
+      const diffMs = targetDate - birthDate;
+      const totalSeconds = Math.floor(diffMs / 1000);
+      const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      document.getElementById('age-years').textContent = y;
+      document.getElementById('age-months').textContent = m;
+      document.getElementById('age-days').textContent = d;
+      document.getElementById('age-seconds').textContent = totalSeconds.toLocaleString();
+      document.getElementById('total-days').textContent = `${totalDays.toLocaleString()} days`;
+
+      // Zodiac Sign
+      document.getElementById('zodiac-sign').textContent = getZodiacSign(birthDate.getDate(), birthDate.getMonth() + 1);
+
+      // Next Birthday Countdown
+      const nextBdayDate = new Date(targetDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+      if (nextBdayDate < targetDate) {
+        nextBdayDate.setFullYear(targetDate.getFullYear() + 1);
+      }
+      const daysToBday = Math.ceil((nextBdayDate - targetDate) / (1000 * 60 * 60 * 24));
+      document.getElementById('next-bday').textContent = `In ${daysToBday} days`;
+    }
+
+    function getZodiacSign(day, month) {
+      const signs = [
+        { name: 'Capricorn ♑', maxDay: 19 },
+        { name: 'Aquarius ♒', maxDay: 18 },
+        { name: 'Pisces ♓', maxDay: 20 },
+        { name: 'Aries ♈', maxDay: 19 },
+        { name: 'Taurus ♉', maxDay: 20 },
+        { name: 'Gemini ♊', maxDay: 20 },
+        { name: 'Cancer ♋', maxDay: 22 },
+        { name: 'Leo ♌', maxDay: 22 },
+        { name: 'Virgo ♍', maxDay: 22 },
+        { name: 'Libra ♎', maxDay: 22 },
+        { name: 'Scorpio ♏', maxDay: 21 },
+        { name: 'Sagittarius ♐', maxDay: 21 },
+        { name: 'Capricorn ♑', maxDay: 31 }
+      ];
+      return day <= signs[month - 1].maxDay ? signs[month - 1].name : signs[month].name;
+    }
+
+    calculateAge();
+  </script>
+</body>
+</html>

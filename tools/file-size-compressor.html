@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Online File & Image Size Compressor | OmniUtil</title>
+  <meta name="description" content="Compress image file sizes directly in your browser. Reduce PNG, JPG, and WEBP file sizes without losing visual quality. 100% free & private.">
+  <meta name="keywords" content="image compressor, reduce file size, compress png, compress jpg, photo shrinker, online file compressor">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/file-size-compressor.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Free Online File & Image Size Compressor | OmniUtil">
+  <meta property="og:description" content="Compress images & files instantly in your browser with real-time compression preview and quality controls.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/file-size-compressor.html">
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "File-Size Compressor",
+    "url": "https://shubhamshshaw.github.io/fifa-stadium-companion/tools/file-size-compressor.html",
+    "description": "In-browser image file size compressor.",
+    "applicationCategory": "UtilitiesApplication"
+  }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo">
+        <div class="brand-icon">OU</div>
+        <span>OmniUtil</span>
+      </a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger">
+          <span>🔍</span>
+          <span>Search tools...</span>
+          <span class="shortcut-badge">⌘K</span>
+        </button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <!-- Main Content Container -->
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>⚡ File-Size Compressor</h1>
+            <p class="tool-description">Reduce image and file sizes using browser-native HTML5 Canvas compression technology.</p>
+          </div>
+        </div>
+
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-zone-icon">📁</div>
+          <h3 style="margin-bottom: 0.5rem;">Drag & Drop Image Here</h3>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">Supports PNG, JPG, WEBP, BMP up to 25MB</p>
+          <input type="file" id="file-input" accept="image/*" style="display: none;">
+          <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">Browse File</button>
+        </div>
+
+        <div id="controls-section" style="margin-top: 1.5rem; display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+              <label class="form-label">Compression Level: <span id="quality-val">80%</span></label>
+              <input type="range" id="quality-range" min="10" max="100" value="80" class="input-field">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Width (px): <span id="width-val">Original</span></label>
+              <input type="range" id="width-range" min="300" max="3840" value="1920" step="100" class="input-field">
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div id="orig-size" class="stat-value">0 KB</div>
+              <div class="stat-label">Original Size</div>
+            </div>
+            <div class="stat-card">
+              <div id="comp-size" class="stat-value">0 KB</div>
+              <div class="stat-label">Compressed Size</div>
+            </div>
+            <div class="stat-card">
+              <div id="saved-pct" class="stat-value" style="color: var(--success);">0%</div>
+              <div class="stat-label">Size Saved</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <a id="download-btn" class="btn btn-primary btn-lg" download="compressed-image.jpg">Download Compressed Image</a>
+          </div>
+
+          <div style="margin-top: 1.5rem; text-align: center;">
+            <img id="preview-img" style="max-width: 100%; max-height: 350px; border-radius: var(--radius-md); border: 1px solid var(--card-border);" alt="Preview">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar with Ad -->
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-8836410103198896"
+               data-ad-slot="2000000001"
+               data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="Search utilities...">
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. Privacy-First Browser Tools.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    let currentFile = null;
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.getElementById('drop-zone');
+    const qualityRange = document.getElementById('quality-range');
+    const widthRange = document.getElementById('width-range');
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) processFile(e.target.files[0]); });
+
+    qualityRange.addEventListener('input', (e) => {
+      document.getElementById('quality-val').textContent = `${e.target.value}%`;
+      if (currentFile) compressImage();
+    });
+
+    widthRange.addEventListener('input', (e) => {
+      document.getElementById('width-val').textContent = `${e.target.value}px`;
+      if (currentFile) compressImage();
+    });
+
+    function processFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file', 'error');
+        return;
+      }
+      currentFile = file;
+      document.getElementById('controls-section').style.display = 'block';
+      document.getElementById('orig-size').textContent = formatBytes(file.size);
+      compressImage();
+    }
+
+    function compressImage() {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const maxW = parseInt(widthRange.value);
+          let w = img.width;
+          let h = img.height;
+
+          if (w > maxW) {
+            h = Math.round((h * maxW) / w);
+            w = maxW;
+          }
+
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(img, 0, 0, w, h);
+
+          const quality = parseInt(qualityRange.value) / 100;
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          document.getElementById('preview-img').src = dataUrl;
+
+          // Estimate byte size
+          const head = 'data:image/jpeg;base64,';
+          const sizeBytes = Math.round((dataUrl.length - head.length) * 3 / 4);
+          document.getElementById('comp-size').textContent = formatBytes(sizeBytes);
+          
+          const saved = Math.max(0, Math.round(((currentFile.size - sizeBytes) / currentFile.size) * 100));
+          document.getElementById('saved-pct').textContent = `${saved}%`;
+          
+          const downloadBtn = document.getElementById('download-btn');
+          downloadBtn.href = dataUrl;
+          downloadBtn.download = `compressed_${currentFile.name.replace(/\.[^/.]+$/, '')}.jpg`;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(currentFile);
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+  </script>
+</body>
+</html>

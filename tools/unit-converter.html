@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Unit Converter - Length, Weight, Temp & Data | OmniUtil</title>
+  <meta name="description" content="Universal multi-unit converter. Convert Length, Weight, Temperature, Volume, Speed, and Digital Storage sizes instantly.">
+  <meta name="keywords" content="unit converter, length converter, weight converter, temperature converter, data size converter, metric to imperial">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/unit-converter.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Universal Unit Converter | OmniUtil">
+  <meta property="og:description" content="Convert units for length, weight, temperature, data storage, speed, and volume instantly.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/unit-converter.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>📐 Universal Unit Converter</h1>
+            <p class="tool-description">Instant bidirectional conversion for metric, imperial, temperature, and digital storage units.</p>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Category:</label>
+          <select id="category-select" class="select-field" style="font-weight: 700; font-size: 1.05rem;">
+            <option value="length">Length & Distance</option>
+            <option value="weight">Weight & Mass</option>
+            <option value="temp">Temperature</option>
+            <option value="data">Data Size & Digital Storage</option>
+            <option value="speed">Speed & Velocity</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center;">
+          <div>
+            <div class="form-group">
+              <label class="form-label">From Unit:</label>
+              <select id="from-unit" class="select-field"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Input Value:</label>
+              <input type="number" id="from-val" value="1" class="input-field" step="any">
+            </div>
+          </div>
+
+          <div>
+            <div class="form-group">
+              <label class="form-label">To Unit:</label>
+              <select id="to-unit" class="select-field"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Converted Result:</label>
+              <input type="text" id="to-val" class="input-field" readonly style="font-weight: 800; color: var(--accent-primary); font-size: 1.2rem;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000013" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    const UNITS = {
+      length: {
+        meter: 1, kilometer: 1000, centimeter: 0.01, millimeter: 0.001,
+        mile: 1609.34, yard: 0.9144, foot: 0.3048, inch: 0.0254
+      },
+      weight: {
+        kilogram: 1, gram: 0.001, milligram: 0.000001,
+        pound: 0.453592, ounce: 0.0283495
+      },
+      data: {
+        Byte: 1, Kilobyte: 1024, Megabyte: 1048576, Gigabyte: 1073741824, Terabyte: 1099511627776
+      },
+      speed: {
+        'm/s': 1, 'km/h': 0.277778, mph: 0.44704, knot: 0.514444
+      }
+    };
+
+    const categorySelect = document.getElementById('category-select');
+    const fromUnit = document.getElementById('from-unit');
+    const toUnit = document.getElementById('to-unit');
+    const fromVal = document.getElementById('from-val');
+    const toVal = document.getElementById('to-val');
+
+    categorySelect.addEventListener('change', populateUnits);
+    fromUnit.addEventListener('change', convert);
+    toUnit.addEventListener('change', convert);
+    fromVal.addEventListener('input', convert);
+
+    function populateUnits() {
+      const cat = categorySelect.value;
+      if (cat === 'temp') {
+        fromUnit.innerHTML = `<option value="C">Celsius (°C)</option><option value="F">Fahrenheit (°F)</option><option value="K">Kelvin (K)</option>`;
+        toUnit.innerHTML = `<option value="F">Fahrenheit (°F)</option><option value="C">Celsius (°C)</option><option value="K">Kelvin (K)</option>`;
+      } else {
+        const options = Object.keys(UNITS[cat]).map(u => `<option value="${u}">${u}</option>`).join('');
+        fromUnit.innerHTML = options;
+        toUnit.innerHTML = options;
+        if (toUnit.options.length > 1) toUnit.selectedIndex = 1;
+      }
+      convert();
+    }
+
+    function convert() {
+      const cat = categorySelect.value;
+      const val = parseFloat(fromVal.value);
+
+      if (isNaN(val)) {
+        toVal.value = '';
+        return;
+      }
+
+      if (cat === 'temp') {
+        const from = fromUnit.value;
+        const to = toUnit.value;
+        let c = val;
+        if (from === 'F') c = (val - 32) * 5/9;
+        if (from === 'K') c = val - 273.15;
+
+        let res = c;
+        if (to === 'F') res = (c * 9/5) + 32;
+        if (to === 'K') res = c + 273.15;
+
+        toVal.value = res.toFixed(2);
+      } else {
+        const fromFactor = UNITS[cat][fromUnit.value];
+        const toFactor = UNITS[cat][toUnit.value];
+        const base = val * fromFactor;
+        const res = base / toFactor;
+        toVal.value = res % 1 === 0 ? res.toString() : res.toFixed(4);
+      }
+    }
+
+    populateUnits();
+  </script>
+</body>
+</html>

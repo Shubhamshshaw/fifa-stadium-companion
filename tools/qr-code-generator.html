@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Custom QR Code Generator with Colors & Download | OmniUtil</title>
+  <meta name="description" content="Generate high-resolution custom QR codes for free. Customize colors, sizes, and download instantly as PNG images for website URLs, text, or Wi-Fi.">
+  <meta name="keywords" content="qr code generator, make qr code, custom qr code, qr maker, online qr generator">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/qr-code-generator.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Free Custom QR Code Generator with Colors & Download | OmniUtil">
+  <meta property="og:description" content="Generate custom colored QR codes instantly with PNG download.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/qr-code-generator.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>📱 QR Code Generator</h1>
+            <p class="tool-description">Create custom QR codes with adjustable colors, sizes, and instant PNG downloads.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; align-items: start;">
+          <div>
+            <div class="form-group">
+              <label class="form-label">QR Code Content / URL:</label>
+              <textarea id="qr-input" class="textarea-field" style="min-height: 100px;" placeholder="https://example.com or your text content...">https://shubhamshshaw.github.io/fifa-stadium-companion/</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Foreground Color:</label>
+                <input type="color" id="qr-dark" value="#000000" class="input-field" style="height: 45px; padding: 4px; cursor: pointer;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Background Color:</label>
+                <input type="color" id="qr-light" value="#ffffff" class="input-field" style="height: 45px; padding: 4px; cursor: pointer;">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Resolution Size: <span id="size-val">256px</span></label>
+              <input type="range" id="qr-size" min="128" max="512" value="256" step="32" class="input-field">
+            </div>
+          </div>
+
+          <!-- Preview Box -->
+          <div style="text-align: center; background: var(--bg-secondary); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 1.5rem;">
+            <div id="qrcode-container" style="display: flex; justify-content: center; margin-bottom: 1rem;"></div>
+            <button id="download-qr-btn" class="btn btn-primary" style="width: 100%;">Download PNG</button>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000004" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/qrcode.min.js"></script>
+  <script>
+    const qrInput = document.getElementById('qr-input');
+    const qrDark = document.getElementById('qr-dark');
+    const qrLight = document.getElementById('qr-light');
+    const qrSize = document.getElementById('qr-size');
+    const downloadBtn = document.getElementById('download-qr-btn');
+    let qrInstance = null;
+
+    function renderQR() {
+      const text = qrInput.value || 'https://omniutil.app';
+      const size = parseInt(qrSize.value);
+      document.getElementById('size-val').textContent = `${size}px`;
+
+      qrInstance = new QRCode('qrcode-container', {
+        text: text,
+        width: size,
+        height: size,
+        colorDark: qrDark.value,
+        colorLight: qrLight.value
+      });
+    }
+
+    qrInput.addEventListener('input', renderQR);
+    qrDark.addEventListener('input', renderQR);
+    qrLight.addEventListener('input', renderQR);
+    qrSize.addEventListener('input', renderQR);
+
+    downloadBtn.addEventListener('click', () => {
+      const canvas = document.querySelector('#qrcode-container canvas');
+      if (canvas) {
+        const link = document.createElement('a');
+        link.download = 'qrcode.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('QR Code PNG downloaded!', 'success');
+      }
+    });
+
+    renderQR();
+  </script>
+</body>
+</html>

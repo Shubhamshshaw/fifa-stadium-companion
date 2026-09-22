@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image to HTML & CSS Generator - Convert Images to Code | OmniUtil</title>
+  <meta name="description" content="Convert images into pure HTML & CSS code pixel art matrices. Extract pixel colors into downloadable CSS box-shadows or HTML div grids.">
+  <meta name="keywords" content="image to html, image to css, css pixel art generator, photo to css converter, image to code">
+  <link rel="canonical" href="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/image-to-html-css.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Image to HTML & CSS Generator | OmniUtil">
+  <meta property="og:description" content="Convert uploaded images into pure HTML & CSS pixel grid artwork client-side.">
+  <meta property="og:url" content="https://shubhamshshaw.github.io/fifa-stadium-companion/tools/image-to-html-css.html">
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8836410103198896" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="../index.html" class="brand-logo"><div class="brand-icon">OU</div><span>OmniUtil</span></a>
+      <div class="nav-controls">
+        <button id="search-trigger" class="search-trigger"><span>🔍</span><span>Search tools...</span><span class="shortcut-badge">⌘K</span></button>
+        <button id="theme-toggle" class="btn-icon">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-title-group">
+            <h1>💻 Image to HTML/CSS Converter</h1>
+            <p class="tool-description">Convert graphics and images into standalone pure HTML & CSS code pixel matrices.</p>
+          </div>
+        </div>
+
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-zone-icon">🎨</div>
+          <h3 style="margin-bottom: 0.5rem;">Upload Graphic or Icon</h3>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">PNG, JPG, WEBP recommended</p>
+          <input type="file" id="file-input" accept="image/*" style="display: none;">
+          <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">Browse Image</button>
+        </div>
+
+        <div id="img-code-controls" style="margin-top: 1.5rem; display: none;">
+          <div class="form-group" style="max-width: 300px; margin-bottom: 1.5rem;">
+            <label class="form-label">Pixel Grid Resolution: <span id="res-val">16x16</span></label>
+            <input type="range" id="res-range" min="8" max="48" value="16" step="4" class="input-field">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="text-align: center;">
+              <h4>CSS Pixel Art Preview</h4>
+              <div id="pixel-preview-container" style="display: flex; justify-content: center; align-items: center; min-height: 200px; background: var(--bg-secondary); border-radius: var(--radius-md); padding: 1rem;"></div>
+            </div>
+            <div>
+              <div class="form-group">
+                <div class="form-label">
+                  <span>Generated HTML & CSS Code:</span>
+                  <button class="btn btn-sm btn-primary" onclick="copyCSSCode()">Copy Code</button>
+                </div>
+                <textarea id="generated-code" class="textarea-field" style="min-height: 200px; font-family: 'Fira Code', monospace;" readonly></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="ad-unit ad-sidebar">
+          <span class="ad-label">Advertisement</span>
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8836410103198896" data-ad-slot="2000000014" data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+    <div class="search-modal">
+      <div class="search-input-wrapper"><span>🔍</span><input type="text" id="search-input" placeholder="Search utilities..."></div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-bottom">&copy; 2026 OmniUtil. All rights reserved.</div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+  <script>
+    let uploadedImg = null;
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.getElementById('drop-zone');
+    const resRange = document.getElementById('res-range');
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleImage(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleImage(e.target.files[0]); });
+    resRange.addEventListener('input', (e) => {
+      document.getElementById('res-val').textContent = `${e.target.value}x${e.target.value}`;
+      if (uploadedImg) convertToCSSArt();
+    });
+
+    function handleImage(file) {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          uploadedImg = img;
+          document.getElementById('img-code-controls').style.display = 'block';
+          convertToCSSArt();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function convertToCSSArt() {
+      if (!uploadedImg) return;
+      const size = parseInt(resRange.value);
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(uploadedImg, 0, 0, size, size);
+
+      const imgData = ctx.getImageData(0, 0, size, size).data;
+      const pixelSize = 8; // px
+      const shadows = [];
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const i = (y * size + x) * 4;
+          const r = imgData[i];
+          const g = imgData[i + 1];
+          const b = imgData[i + 2];
+          const a = (imgData[i + 3] / 255).toFixed(2);
+
+          if (a > 0.05) {
+            const posX = (x + 1) * pixelSize;
+            const posY = (y + 1) * pixelSize;
+            shadows.push(`${posX}px ${posY}px 0 rgba(${r},${g},${b},${a})`);
+          }
+        }
+      }
+
+      const cssCode = `<style>
+.pixel-art {
+  width: ${pixelSize}px;
+  height: ${pixelSize}px;
+  background: transparent;
+  box-shadow: ${shadows.join(',\n    ')};
+}
+</style>
+<div class="pixel-art"></div>`;
+
+      document.getElementById('generated-code').value = cssCode;
+
+      // Render Preview
+      const previewContainer = document.getElementById('pixel-preview-container');
+      previewContainer.innerHTML = `
+        <div style="width: ${pixelSize}px; height: ${pixelSize}px; background: transparent; box-shadow: ${shadows.join(',')}; transform: scale(1.5); margin: ${(size * pixelSize) / 2}px;"></div>
+      `;
+    }
+
+    function copyCSSCode() {
+      const code = document.getElementById('generated-code').value;
+      if (!code) return;
+      copyToClipboard(code, 'HTML/CSS code copied to clipboard!');
+    }
+  </script>
+</body>
+</html>
